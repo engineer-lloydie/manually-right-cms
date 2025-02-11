@@ -1,5 +1,10 @@
 <template>
-    <v-app>
-        <slot />
-    </v-app>
+    <sidebar>
+        <template #main>
+            <slot />
+        </template> 
+    </sidebar>
 </template>
+
+<script setup>
+</script>
