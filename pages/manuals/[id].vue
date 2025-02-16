@@ -9,8 +9,8 @@
 			</v-tabs>
 
 			<v-card-text>
-				<DocumentTabs v-show="tab == 'document'"/>
-                <ThumbnailTabs v-show="tab == 'thumbnail'"/>
+				<DocumentTabs v-if="tab == 'document'"/>
+                <ThumbnailTabs v-else/>
 			</v-card-text>
 		</v-card>
 	</div>

@@ -1,7 +1,7 @@
 <template>
 	<div>
         <v-tabs-window v-model="tab">
-            <v-tabs-window-item value="main">
+            <v-tabs-window-item value="thumbnail">
                 <v-btn
                     color="red-lighten-1"
                     @click="itemDialog = true"
@@ -15,17 +15,21 @@
                     :items-length="totalItems"
                     :loading="loading"
                     item-value="name"
-                    @update:options="loadItems"
+                    @update:options="loadThumbnails"
                 >
                     <template #item.actions="{ item }">
-                        <v-icon
-                            class="me-2"
-                            size="small"
-                            @click="itemDialog = true"
+                        <v-icon 
+                            size="small" 
+                            @click="deleteConfirmation = true; selectedThumbnailId = item.id"
                         >
-                            mdi-pencil
+                            mdi-delete
                         </v-icon>
-                        <v-icon size="small" @click="deleteConfirmation = true"> mdi-delete </v-icon>
+                        <v-icon 
+                            size="small" 
+                            @click="previewThumbnail(item.id)"
+                        >
+                            mdi-image-search
+                        </v-icon>
                     </template>
                 </v-data-table-server>
             </v-tabs-window-item>
@@ -33,16 +37,16 @@
 
         <!-- Dialogs -->
 		<v-dialog v-model="itemDialog" max-width="500">
-			<v-card title="Add document file">
+			<v-card title="Add thumbnail file">
 				<template v-slot:actions>
 					<v-btn
 						class="ml-auto"
 						text="Close"
-						@click="itemDialog = false"
+						@click="resetValues"
 					></v-btn>
 				</template>
 				<v-container>
-					<form @submit.prevent="submit">
+					<form @submit.prevent="addThumbnailFile">
 						<v-file-input
 							label="File/Document"
 							variant="outlined"
@@ -59,141 +63,103 @@
 							variant="outlined"
 						></v-select>
 
-						<v-btn class="me-4 mt-4" type="submit"> submit </v-btn>
+						<v-btn class="me-4 mt-4" type="submit" :loading="modifying"> submit </v-btn>
 
 						<v-btn class="mt-4" @click="handleReset"> clear </v-btn>
 					</form>
 				</v-container>
 			</v-card>
 		</v-dialog>
+
 		<v-dialog v-model="deleteConfirmation" width="auto">
 			<v-card
 				max-width="400"
 				prepend-icon="mdi-delete-circle"
-				text="Are you sure you want to delete this category?"
-				title="Delete Category"
+				text="Are you sure you want to delete this document thumbnail?"
+				title="Delete document thumbnail"
 			>
 				<template v-slot:actions>
 					<v-btn
 						class="ms-auto"
 						text="Yes"
                         color="error"
-						@click="deleteConfirmation = false"
+						@click="deleteThumbnail"
+                        :loading="modifying"
 					></v-btn>
 				</template>
 			</v-card>
 		</v-dialog>
+
+        <v-dialog v-model="successDialog" width="auto">
+			<v-card
+				max-width="400"
+				prepend-icon="mdi-check"
+				:text="successMessage"
+				title="Success"
+			>
+				<template v-slot:actions>
+					<v-btn
+						class="ms-auto"
+						text="Close"
+                        color="grey"
+						@click="successDialog = false; successMessage = null"
+					></v-btn>
+				</template>
+			</v-card>
+		</v-dialog>
+
+        <v-dialog
+            v-model="previewDialog"
+            width="600"
+            height="610"
+        >
+            <v-card
+                title="Preview thumbnail"
+            >
+                <v-card-text>
+                    <p class="loading-position" v-if="fetchingFile">Loading...</p>
+                    <v-img v-else width="auto" :src="thumbnailImage"></v-img>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn
+                        class="ms-auto"
+                        text="Ok"
+                        @click="previewDialog = false"
+                    ></v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
 	</div>
 </template>
 
 <script setup>
 import { useField, useForm } from "vee-validate";
-const tab = ref("main");
+const tab = ref("thumbnail");
 import * as yup from "yup";
 
-
-const thumbnails = [
-    {
-        file_name: "great_gatsby.pdf",
-        status: "active",
-    },
-    {
-        file_name: "to_kill_a_mockingbird.pdf",
-        status: "active",
-    },
-    {
-        file_name: "1984.pdf",
-        status: "active",
-    },
-    {
-        file_name: "pride_and_prejudice.pdf",
-        status: "active",
-    },
-    {
-        file_name: "catcher_in_the_rye.pdf",
-        status: "active",
-    },
-    {
-        file_name: "the_hobbit.pdf",
-        status: "active",
-    },
-    {
-        file_name: "moby_dick.pdf",
-        status: "active",
-    },
-    {
-        file_name: "war_and_peace.pdf",
-        status: "active",
-    },
-    {
-        file_name: "the_odyssey.pdf",
-        status: "active",
-    },
-    {
-        file_name: "crime_and_punishment.pdf",
-        status: "active",
-    },
-];
-
-const FakeAPI = {
-	async fetch({ page, itemsPerPage, sortBy }) {
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				const start = (page - 1) * itemsPerPage;
-				const end = start + itemsPerPage;
-				const items = thumbnails.slice();
-
-				if (sortBy.length) {
-					const sortKey = sortBy[0].key;
-					const sortOrder = sortBy[0].order;
-					items.sort((a, b) => {
-						const aValue = a[sortKey];
-						const bValue = b[sortKey];
-						return sortOrder === "desc"
-							? bValue - aValue
-							: aValue - bValue;
-					});
-				}
-
-				const paginated = items.slice(start, end);
-
-				resolve({ items: paginated, total: items.length });
-			}, 500);
-		});
-	},
-};
+const route = useRoute();
 
 const headers = ref([
-    {
-        title: "Filename",
-        align: "start",
-        sortable: false,
-        key: "file_name",
-    },
-    { title: "Status", key: "status", align: "end" },
-    { title: "Actions", key: "actions", align: "end" },
+	{ title: "Filename", key: "filename", align: "start", sortable: false },
+	{ title: "Status", key: "status", align: "start", sortable: false },
+	{ title: "Actions", key: "actions", align: "end" },
 ]);
 
 const serverItems = ref([]);
 const loading = ref(true);
 const totalItems = ref(0);
-
-const itemsPerPage = ref(5);
-
-const loadItems = async ({ page, itemsPerPage, sortBy }) => {
-	loading.value = true;
-	const { items, total } = await FakeAPI.fetch({
-		page,
-		itemsPerPage,
-		sortBy,
-	});
-	serverItems.value = items;
-	totalItems.value = total;
-	loading.value = false;
-};
-
+const itemsPerPage = ref(10);
 const itemDialog = ref(false);
+const editDialog = ref(false);
 const deleteConfirmation = ref(false);
+const successDialog = ref(false);
+const successMessage = ref(null);
+const selectedThumbnailId = ref(null);
+const modifying = ref(false);
+
+const previewDialog = ref(false);
+const thumbnailImage = ref('')
+const fetchingFile = ref(false);
 
 const schema = yup.object({
 	thumbnail: yup
@@ -224,32 +190,100 @@ const thumbnail = useField("thumbnail");
 const status = useField("status");
 const statusItems = ref(["Active", "Inactive"]);
 
-// Handle Form Submission
-const submit = handleSubmit(async (values) => {
-	const formData = new FormData();
-	formData.append("title", values.title);
-	formData.append("status", values.status);
-	if (values.thumbnail && values.thumbnail.length) {
-		formData.append("thumbnail", values.thumbnail[0]);
-	}
+const loadThumbnails = async ({ page, itemsPerPage, sortBy }) => {
+    try {
+        loading.value = true;
+        const { data, total } = await useBaseFetch(`/manuals/${route.params.id}/thumbnails`, {
+            method: 'GET',
+            params: {
+                page,
+                itemsPerPage,
+                sortBy,
+            }
+        });
 
-    alert(1234)
+        serverItems.value = data;
+        totalItems.value = total;
+    } catch (error) {
+        console.error(error);
+    } finally {
+        loading.value = false;
+    }
+};
 
-	// try {
-	// 	const response = await fetch("/api/upload", {
-	// 		method: "POST",
-	// 		body: formData,
-	// 	});
+const resetValues = () => {
+    itemDialog.value = false;
+    editDialog.value = false;
+    handleReset()
+}
 
-	// 	const result = await response.json();
-	// 	console.log("Upload Successful:", result);
-	// 	alert("File uploaded successfully!");
-	// } catch (error) {
-	// 	console.error("Upload Error:", error);
-	// 	alert("File upload failed!");
-	// }
+const addThumbnailFile = handleSubmit(async (values) => {
+    try {
+        modifying.value = true;
+        const formData = new FormData();
+        formData.append("status", values.status);
+        if (values.thumbnail && values.thumbnail.length) {
+            formData.append("thumbnail", values.thumbnail[0]);
+        }
+
+        const { message } = await useBaseFetch(`/manuals/${route.params.id}/thumbnails`, {
+            method: 'POST',
+            body: formData
+        });
+
+        itemDialog.value = false
+        successMessage.value = message;
+        loadThumbnails({page: 1, itemsPerPage: 10});
+        successDialog.value = true;
+        handleReset();
+    } catch (error) {
+        console.error(error);
+    } finally {
+        modifying.value = false;
+    }
 });
+
+const deleteThumbnail = async () => {
+	try {
+        modifying.value = true;
+
+        const { message } = await useBaseFetch(`/manuals/${route.params.id}/thumbnails/${selectedThumbnailId.value}`, {
+            method: 'DELETE'
+        });
+
+        deleteConfirmation.value = false
+        successMessage.value = message;
+        loadThumbnails({page: 1, itemsPerPage: 10});
+        successDialog.value = true;
+    } catch (error) {
+        console.error(error);
+    } finally {
+        modifying.value = false;
+    }
+};
+
+const previewThumbnail = async (id) => {
+    try {
+        previewDialog.value = true;
+        fetchingFile.value = true;
+
+        const { url } = await useBaseFetch(`/manuals/file-signed-url/${id}?path=thumbnails`, {
+            method: 'GET'
+        });
+
+        thumbnailImage.value = url;
+    } catch (error) {
+        console.error(error);
+    } finally {
+        fetchingFile.value = false;
+    }
+}
 </script>
 
 <style lang="scss" scoped>
+.loading-position {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}
 </style>

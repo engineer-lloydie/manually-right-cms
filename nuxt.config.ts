@@ -15,7 +15,8 @@ export default defineNuxtConfig({
     devtools: { enabled: false },
     runtimeConfig: {
         public: {
-            apiBaseUrl: process.env.BASE_URL
+            apiBaseUrl: process.env.BASE_URL,
+            thumbnailPath: process.env.THUMBNAIL_PATH
         }
     },
     modules: [

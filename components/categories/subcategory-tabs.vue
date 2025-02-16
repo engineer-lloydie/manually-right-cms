@@ -1,7 +1,7 @@
 <template>
 	<div>
         <v-tabs-window v-model="tab">
-            <v-tabs-window-item value="main">
+            <v-tabs-window-item value="sub">
                 <v-btn
                     color="red-lighten-1"
                     @click="itemDialog = true; loadMainCategories()"
@@ -131,7 +131,7 @@
 
 <script setup>
 import { useField, useForm } from "vee-validate";
-const tab = ref("main");
+const tab = ref("sub");
 import * as yup from "yup";
 
 const headers = ref([
@@ -251,7 +251,7 @@ const setItemToEdit = (item) => {
     itemDialog.value = true;
 
     selectedCategoryId.value = item.id
-    mainCategoryId.value.value = mainCategoryLists.value.find(list => list.main_category_id == item.main_category_id).id;
+    mainCategoryId.value.value = item.main_category_id;
     name.value.value = item.name;
     description.value.value = item.description;
     urlSlug.value.value = item.url_slug;
