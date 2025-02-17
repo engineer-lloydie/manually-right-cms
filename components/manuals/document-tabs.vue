@@ -49,9 +49,8 @@
 					<form @submit.prevent="addDocumentFile">
 						<v-text-field
 							v-model="title.value.value"
-							:counter="10"
 							:error-messages="title.errorMessage.value"
-							label="Title"
+							label="Title (Optional)"
 							variant="outlined"
 						></v-text-field>
 						<v-file-input
@@ -170,7 +169,6 @@ const documentFile = ref('')
 const fetchingFile = ref(false);
 
 const schema = yup.object({
-	title: yup.string().required("Title is required."),
 	document: yup
 		.mixed()
 		.test("fileRequired", "Document file is required.", (value) => value && value.length > 0)
@@ -203,7 +201,7 @@ const statusItems = ref(["Active", "Inactive"]);
 const loadDocumentFiles = async ({ page, itemsPerPage, sortBy }) => {
     try {
         loading.value = true;
-        const { data, total } = await useBaseFetch(`/manuals/${route.params.id}/files`, {
+        const { data, total } = await useBaseFetch(`/admin/manuals/${route.params.id}/files`, {
             method: 'GET',
             params: {
                 page,
@@ -231,13 +229,17 @@ const addDocumentFile = handleSubmit(async (values) => {
     try {
         modifying.value = true;
         const formData = new FormData();
-        formData.append("title", values.title);
+        if (values.title) {
+            formData.append("title", values.title);
+        }
+
         formData.append("status", values.status);
+        
         if (values.document && values.document.length) {
             formData.append("document", values.document[0]);
         }
 
-        const { message } = await useBaseFetch(`/manuals/${route.params.id}/files`, {
+        const { message } = await useBaseFetch(`/admin/manuals/${route.params.id}/files`, {
             method: 'POST',
             body: formData
         });
@@ -258,7 +260,7 @@ const deleteDocumentFile = async () => {
 	try {
         modifying.value = true;
 
-        const { message } = await useBaseFetch(`/manuals/${route.params.id}/files/${selectedDocumentId.value}`, {
+        const { message } = await useBaseFetch(`/admin/manuals/${route.params.id}/files/${selectedDocumentId.value}`, {
             method: 'DELETE'
         });
 
@@ -278,7 +280,7 @@ const previewDocument = async (id) => {
         previewDialog.value = true;
         fetchingFile.value = true;
 
-        const { url } = await useBaseFetch(`/manuals/file-signed-url/${id}?path=files`, {
+        const { url } = await useBaseFetch(`/admin/manuals/file-signed-url/${id}?path=files`, {
             method: 'GET'
         });
 

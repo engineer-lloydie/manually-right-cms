@@ -181,7 +181,7 @@ const loadCategories = async ({ page, itemsPerPage, sortBy }) => {
     try {
         loading.value = true;
 
-        const { data, total } = await useBaseFetch('/sub-categories', {
+        const { data, total } = await useBaseFetch('/admin/sub-categories', {
             method: 'GET',
             params: {
                 page,
@@ -203,7 +203,7 @@ const loadMainCategories = async () => {
     try {
         loadingMainCategories.value = true;
 
-        const data = await useBaseFetch('/main-categories', {
+        const data = await useBaseFetch('/admin/main-categories', {
             method: 'GET'
         });
 
@@ -231,7 +231,7 @@ const handleFormSubmission = handleSubmit(async (values) => {
 
 const addCategory = async (values) => {
 	try {
-        const { message } = await useBaseFetch('/sub-categories', {
+        const { message } = await useBaseFetch('/admin/sub-categories', {
             method: 'POST',
             body: values
         });
@@ -260,7 +260,7 @@ const setItemToEdit = (item) => {
 
 const updateCategory = async (values) => {
 	try {
-        const { message } = await useBaseFetch(`/sub-categories/${selectedCategoryId.value}`, {
+        const { message } = await useBaseFetch(`/admin/sub-categories/${selectedCategoryId.value}`, {
             method: 'PUT',
             body: values
         });
@@ -278,7 +278,7 @@ const updateCategory = async (values) => {
 
 const deleteCategory = async () => {
 	try {
-        const { message } = await useBaseFetch(`/sub-categories/${selectedCategoryId.value}`, {
+        const { message } = await useBaseFetch(`/admin/sub-categories/${selectedCategoryId.value}`, {
             method: 'DELETE'
         });
 

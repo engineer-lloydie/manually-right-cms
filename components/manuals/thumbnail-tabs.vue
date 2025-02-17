@@ -193,7 +193,7 @@ const statusItems = ref(["Active", "Inactive"]);
 const loadThumbnails = async ({ page, itemsPerPage, sortBy }) => {
     try {
         loading.value = true;
-        const { data, total } = await useBaseFetch(`/manuals/${route.params.id}/thumbnails`, {
+        const { data, total } = await useBaseFetch(`/admin/manuals/${route.params.id}/thumbnails`, {
             method: 'GET',
             params: {
                 page,
@@ -226,7 +226,7 @@ const addThumbnailFile = handleSubmit(async (values) => {
             formData.append("thumbnail", values.thumbnail[0]);
         }
 
-        const { message } = await useBaseFetch(`/manuals/${route.params.id}/thumbnails`, {
+        const { message } = await useBaseFetch(`/admin/manuals/${route.params.id}/thumbnails`, {
             method: 'POST',
             body: formData
         });
@@ -247,7 +247,7 @@ const deleteThumbnail = async () => {
 	try {
         modifying.value = true;
 
-        const { message } = await useBaseFetch(`/manuals/${route.params.id}/thumbnails/${selectedThumbnailId.value}`, {
+        const { message } = await useBaseFetch(`/admin/manuals/${route.params.id}/thumbnails/${selectedThumbnailId.value}`, {
             method: 'DELETE'
         });
 
@@ -267,7 +267,7 @@ const previewThumbnail = async (id) => {
         previewDialog.value = true;
         fetchingFile.value = true;
 
-        const { url } = await useBaseFetch(`/manuals/file-signed-url/${id}?path=thumbnails`, {
+        const { url } = await useBaseFetch(`/admin/manuals/file-signed-url/${id}?path=thumbnails`, {
             method: 'GET'
         });
 

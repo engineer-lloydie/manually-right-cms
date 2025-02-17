@@ -208,7 +208,7 @@ const loadManuals = async ({ page, itemsPerPage, sortBy }) => {
     try {
         loading.value = true;
 
-        const { data, total } = await useBaseFetch('/manuals', {
+        const { data, total } = await useBaseFetch('/admin/manuals', {
             method: 'GET',
             params: {
                 page,
@@ -230,7 +230,7 @@ const loadSubCategories = async () => {
     try {
         loadingCategories.value = true;
 
-        const data = await useBaseFetch('/sub-categories', {
+        const data = await useBaseFetch('/admin/sub-categories', {
             method: 'GET'
         });
 
@@ -258,7 +258,7 @@ const handleFormSubmission = handleSubmit(async (values) => {
 
 const addManual = async (values) => {
 	try {
-        const { message } = await useBaseFetch('/manuals', {
+        const { message } = await useBaseFetch('/admin/manuals', {
             method: 'POST',
             body: values
         });
@@ -288,7 +288,7 @@ const setItemToEdit = (item) => {
 
 const updateManual = async (values) => {
 	try {
-        const { message } = await useBaseFetch(`/manuals/${selectedManualId.value}`, {
+        const { message } = await useBaseFetch(`/admin/manuals/${selectedManualId.value}`, {
             method: 'PUT',
             body: values
         });
@@ -306,7 +306,7 @@ const updateManual = async (values) => {
 
 const deleteManual = async () => {
 	try {
-        const { message } = await useBaseFetch(`/manuals/${selectedManualId.value}`, {
+        const { message } = await useBaseFetch(`/admin/manuals/${selectedManualId.value}`, {
             method: 'DELETE'
         });
 
