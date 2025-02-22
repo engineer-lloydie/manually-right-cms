@@ -75,7 +75,6 @@
 						></v-select>
                         <v-text-field
 							v-model="title.value.value"
-							:counter="10"
 							:error-messages="title.errorMessage.value"
 							label="Title"
 							variant="outlined"
@@ -87,7 +86,6 @@
 						></v-text-field>
                         <v-text-field
 							v-model="price.value.value"
-							:counter="10"
                             :error-messages="price.errorMessage.value"
 							label="Price"
 							variant="outlined"
