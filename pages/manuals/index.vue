@@ -19,6 +19,9 @@
                     item-value="name"
                     @update:options="loadManuals"
                 >
+                    <template #item.description="{ item }">
+                        <p>{{ item.description ?? 'N/A' }}</p>
+                    </template>
                     <template #item.actions="{ item }">
                         <v-btn
                             size="small"
@@ -88,12 +91,6 @@
 							v-model="price.value.value"
                             :error-messages="price.errorMessage.value"
 							label="Price"
-							variant="outlined"
-						></v-text-field>
-						<v-text-field
-							v-model="urlSlug.value.value"
-							:error-messages="urlSlug.errorMessage.value"
-							label="URL Slug"
 							variant="outlined"
 						></v-text-field>
 						<v-select
@@ -183,7 +180,6 @@ const schema = yup.object({
     categoryId: yup.number().required("Category is required."),
     title: yup.string().required("Title is required."),
     price: yup.number().required("Price is required."),
-    urlSlug: yup.string().required("URL slug is required."),
 	status: yup.string().required("Status is required."),
 });
 
@@ -198,7 +194,6 @@ const categoryId = useField("categoryId");
 const title = useField("title");
 const description = useField("description");
 const price = useField("price");
-const urlSlug = useField("urlSlug");
 const status = useField("status");
 const statusItems = ref(["Active", "Inactive"]);
 
@@ -247,6 +242,10 @@ const resetValues = () => {
 }
 
 const handleFormSubmission = handleSubmit(async (values) => {
+    const { $slugify } = useNuxtApp();
+    
+    values.urlSlug = $slugify(values.title);
+
     if (!editDialog.value) {
         addManual(values);
     } else {
@@ -280,7 +279,6 @@ const setItemToEdit = (item) => {
     title.value.value = item.title;
     description.value.value = item.description;
     price.value.value = item.price;
-    urlSlug.value.value = item.url_slug;
     status.value.value = item.status;
 }
 

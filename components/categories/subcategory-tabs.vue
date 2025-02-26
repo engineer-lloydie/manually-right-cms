@@ -69,12 +69,6 @@
 							label="Description (Optional)"
 							variant="outlined"
 						></v-text-field>
-						<v-text-field
-							v-model="urlSlug.value.value"
-							:error-messages="urlSlug.errorMessage.value"
-							label="URL Slug"
-							variant="outlined"
-						></v-text-field>
 						<v-select
 							v-model="status.value.value"
 							:error-messages="status.errorMessage.value"
@@ -159,7 +153,6 @@ const mainCategoryLists = ref([]);
 const schema = yup.object({
     mainCategoryId: yup.number().required("Main category is required."),
     name: yup.string().required("Name is required."),
-    urlSlug: yup.string().required("URL slug is required."),
 	status: yup.string().required("Status is required."),
 });
 
@@ -173,7 +166,6 @@ const { handleSubmit, handleReset } = useForm({
 const mainCategoryId = useField("mainCategoryId");
 const name = useField("name");
 const description = useField("description");
-const urlSlug = useField("urlSlug");
 const status = useField("status");
 const statusItems = ref(["Active", "Inactive"]);
 
@@ -222,6 +214,10 @@ const resetValues = () => {
 }
 
 const handleFormSubmission = handleSubmit(async (values) => {
+    const { $slugify } = useNuxtApp();
+    
+    values.urlSlug = $slugify(values.name);
+
     if (!editDialog.value) {
         addCategory(values);
     } else {
@@ -254,7 +250,6 @@ const setItemToEdit = (item) => {
     mainCategoryId.value.value = item.main_category_id;
     name.value.value = item.name;
     description.value.value = item.description;
-    urlSlug.value.value = item.url_slug;
     status.value.value = item.status;
 }
 

@@ -17,6 +17,9 @@
                     item-value="name"
                     @update:options="loadDocumentFiles"
                 >
+                    <template #item.title="{ item }">
+                        <p>{{ item.title ?? 'N/A' }}</p>
+                    </template>
                     <template #item.actions="{ item }">
                         <v-icon 
                             size="small" 
