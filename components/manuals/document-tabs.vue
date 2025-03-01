@@ -72,6 +72,14 @@
 							variant="outlined"
 						></v-select>
 
+                        <v-alert
+                            v-if="errorMessage"
+                            density="compact"
+                            :text="errorMessage"
+                            type="error"
+                            closable
+                        ></v-alert>
+
 						<v-btn class="me-4 mt-4" type="submit" :loading="modifying"> submit </v-btn>
 
 						<v-btn class="mt-4" @click="handleReset"> clear </v-btn>
@@ -145,6 +153,7 @@
 import { useField, useForm } from "vee-validate";
 const tab = ref("document");
 import * as yup from "yup";
+import { set } from "~/node_modules/nuxt/dist/app/compat/capi";
 
 const route = useRoute();
 
@@ -166,6 +175,8 @@ const successDialog = ref(false);
 const successMessage = ref(null);
 const selectedDocumentId = ref(null);
 const modifying = ref(false);
+
+const errorMessage = ref(null);
 
 const previewDialog = ref(false);
 const documentFile = ref('')
@@ -254,6 +265,10 @@ const addDocumentFile = handleSubmit(async (values) => {
         handleReset();
     } catch (error) {
         console.error(error);
+        errorMessage.value = error?.response?.data?.message ?? error.message;
+        setTimeout(() => {
+            errorMessage.value = null;
+        }, 5000);
     } finally {
         modifying.value = false;
     }
