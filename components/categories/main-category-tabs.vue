@@ -67,7 +67,7 @@
 							variant="outlined"
 						></v-select>
 
-						<v-btn class="me-4 mt-4" type="submit"> submit </v-btn>
+						<v-btn class="me-4 mt-4" :loading="modifying" type="submit"> submit </v-btn>
 
 						<v-btn class="mt-4" @click="handleReset"> clear </v-btn>
 					</form>
@@ -84,6 +84,7 @@
 			>
 				<template v-slot:actions>
 					<v-btn
+                        :loading="modifying"
 						class="ms-auto"
 						text="Yes"
                         color="error"
@@ -128,6 +129,7 @@ const headers = ref([
 
 const serverItems = ref([]);
 const loading = ref(true);
+const modifying = ref(false);
 const totalItems = ref(0);
 const itemsPerPage = ref(10);
 const itemDialog = ref(false);
@@ -196,6 +198,7 @@ const handleFormSubmission = handleSubmit(async (values) => {
 
 const addCategory = async (values) => {
 	try {
+        modifying.value = true;
         const { message } = await useBaseFetch('/admin/main-categories', {
             method: 'POST',
             body: values
@@ -208,6 +211,8 @@ const addCategory = async (values) => {
         handleReset();
     } catch (error) {
         console.error(error);
+    } finally {
+        modifying.value = false;
     }
 };
 
@@ -223,6 +228,7 @@ const setItemToEdit = (item) => {
 
 const updateCategory = async (values) => {
 	try {
+        modifying.value = true;
         const { message } = await useBaseFetch(`/admin/main-categories/${selectedCategoryId.value}`, {
             method: 'PUT',
             body: values
@@ -236,11 +242,14 @@ const updateCategory = async (values) => {
         handleReset();
     } catch (error) {
         console.error(error);
+    } finally {
+        modifying.value = false;
     }
 };
 
 const deleteCategory = async () => {
 	try {
+        modifying.value = true;
         const { message } = await useBaseFetch(`/admin/main-categories/${selectedCategoryId.value}`, {
             method: 'DELETE'
         });
@@ -251,6 +260,8 @@ const deleteCategory = async () => {
         successDialog.value = true;
     } catch (error) {
         console.error(error);
+    } finally {
+        modifying.value = false;
     }
 };
 </script>

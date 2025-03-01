@@ -18,7 +18,7 @@ export default defineNuxtConfig({
         }
     ],
     plugins: [
-        '~/plugins/url-slug.mjs',
+        '~/plugins/url-slug.mjs'
     ],
     components: { 
         dirs: [ 

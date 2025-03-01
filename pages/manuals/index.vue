@@ -179,7 +179,7 @@ const categoryLists = ref([]);
 const schema = yup.object({
     categoryId: yup.number().required("Category is required."),
     title: yup.string().required("Title is required."),
-    price: yup.number().required("Price is required."),
+    price: yup.string().required("Price is required."),
 	status: yup.string().required("Status is required."),
 });
 
@@ -245,6 +245,7 @@ const handleFormSubmission = handleSubmit(async (values) => {
     const { $slugify } = useNuxtApp();
     
     values.urlSlug = $slugify(values.title);
+    values.price = parseFloat(values.price);
 
     if (!editDialog.value) {
         addManual(values);
