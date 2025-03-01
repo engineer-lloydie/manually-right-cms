@@ -265,10 +265,9 @@ const addDocumentFile = handleSubmit(async (values) => {
         handleReset();
     } catch (error) {
         console.error(error);
-        errorMessage.value = error?.response?.data?.message ?? error.message;
-        setTimeout(() => {
-            errorMessage.value = null;
-        }, 5000);
+        console.log(error?.response?.data?.message ?? 'File is too large. Maximum file size is 3MB');
+        console.log(error.message);
+        errorMessage.value = 'File is too large.';
     } finally {
         modifying.value = false;
     }
