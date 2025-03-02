@@ -1,43 +1,49 @@
 <template>
 	<div>
-        <v-tabs-window v-model="tab">
-            <v-tabs-window-item value="thumbnail">
+		<h3>Banners</h3>
+		<v-divider class="my-5"></v-divider>
+		<v-card>
+			<v-card-text>
                 <v-btn
                     color="red-lighten-1"
                     @click="itemDialog = true"
                 >
                     Add New
                 </v-btn>
+
                 <v-data-table-server
+                    :expanded="expanded"
                     :items-per-page="itemsPerPage"
                     :headers="headers"
-                    :items="serverItems"
+                    :items="banners"
                     :items-length="totalItems"
-                    :loading="loading"
-                    item-value="name"
-                    @update:options="loadThumbnails"
+                    :loading="fetching"
+                    @update:options="getBanners"
                 >
+                    <template #item.title="{ item }">
+                        <p>{{ item.title ?? 'N/A' }}</p>
+                    </template>
                     <template #item.actions="{ item }">
                         <v-icon 
                             size="small" 
-                            @click="deleteConfirmation = true; selectedThumbnailId = item.id"
-                        >
-                            mdi-delete
-                        </v-icon>
-                        <v-icon 
-                            size="small" 
-                            @click="previewThumbnail(item.id)"
+                            @click="previewBanner(item.id)"
                         >
                             mdi-image-search
                         </v-icon>
+                        <v-btn icon="mdi-delete" size="small"
+                            :loading="deleting"
+                            @click="deleteBanner(item.id)"
+                            variant="text"
+                        >
+                        </v-btn>
                     </template>
                 </v-data-table-server>
-            </v-tabs-window-item>
-        </v-tabs-window>
+			</v-card-text>
+		</v-card>
 
         <!-- Dialogs -->
 		<v-dialog v-model="itemDialog" max-width="500">
-			<v-card title="Add thumbnail file">
+			<v-card title="Add Banner">
 				<template v-slot:actions>
 					<v-btn
 						class="ml-auto"
@@ -46,13 +52,13 @@
 					></v-btn>
 				</template>
 				<v-container>
-					<form @submit.prevent="addThumbnailFile">
+					<form @submit.prevent="addBannerFile">
 						<v-file-input
-							label="File/Document"
+							label="File/Image"
 							variant="outlined"
                             @change="handleFileChange"
                             prepend-icon=""
-                            :error-messages="thumbnail.errorMessage.value"
+                            :error-messages="banner.errorMessage.value"
                             show-size
 						></v-file-input>
 						<v-select
@@ -68,25 +74,6 @@
 						<v-btn class="mt-4" @click="handleReset"> clear </v-btn>
 					</form>
 				</v-container>
-			</v-card>
-		</v-dialog>
-
-		<v-dialog v-model="deleteConfirmation" width="auto">
-			<v-card
-				max-width="400"
-				prepend-icon="mdi-delete-circle"
-				text="Are you sure you want to delete this document thumbnail?"
-				title="Delete document thumbnail"
-			>
-				<template v-slot:actions>
-					<v-btn
-						class="ms-auto"
-						text="Yes"
-                        color="error"
-						@click="deleteThumbnail"
-                        :loading="modifying"
-					></v-btn>
-				</template>
 			</v-card>
 		</v-dialog>
 
@@ -118,7 +105,7 @@
             >
                 <v-card-text>
                     <p class="loading-position" v-if="fetchingFile">Loading...</p>
-                    <v-img v-else width="auto" :src="thumbnailImage" lazy-src="~/assets/images/image-icon.png">
+                    <v-img v-else width="auto" lazy-src="~/assets/images/image-icon.png" :src="bannerImage">
                         <template v-slot:placeholder>
                             <div class="d-flex align-center justify-center fill-height">
                                 <v-progress-circular
@@ -143,37 +130,38 @@
 
 <script setup>
 import { useField, useForm } from "vee-validate";
-const tab = ref("thumbnail");
 import * as yup from "yup";
 
-const route = useRoute();
-
-const headers = ref([
-	{ title: "Filename", key: "filename", align: "start", sortable: false },
-	{ title: "Status", key: "status", align: "start", sortable: false },
-	{ title: "Actions", key: "actions", align: "end" },
-]);
-
-const serverItems = ref([]);
-const loading = ref(true);
-const totalItems = ref(0);
-const itemsPerPage = ref(10);
-const itemDialog = ref(false);
-const editDialog = ref(false);
-const deleteConfirmation = ref(false);
-const successDialog = ref(false);
-const successMessage = ref(null);
-const selectedThumbnailId = ref(null);
+const banners = ref([]);
+const fetching = ref(false);
 const modifying = ref(false);
+const deleting = ref(false);
+
+// For table setup
+const headers = ref([
+    { title: "Title", key: "title", align: "start" },
+    { title: "Filename", key: "filename", align: "end" },
+    { title: "Status", key: "status", align: "end" },
+    { title: "Actions", key: "actions", align: "end" }
+]);
+const itemsPerPage = ref(10);
+const totalItems = ref(0);
+const expanded = ref([]);
+const currentPage = ref(1);
 
 const previewDialog = ref(false);
-const thumbnailImage = ref('')
+const bannerImage = ref('')
 const fetchingFile = ref(false);
 
+const itemDialog = ref(false);
+const successDialog = ref(false);
+
+const successMessage = ref(null);
+
 const schema = yup.object({
-	thumbnail: yup
+	banner: yup
 		.mixed()
-		.test("fileRequired", "Thumbnail file is required.", (value) => value && value.length > 0)
+		.test("fileRequired", "Banner file is required.", (value) => value && value.length > 0)
 		.test("fileType", "Only PNG, JPG, or JPEG files are allowed.", (value) => {
 			if (!value?.length) return true;
 			return ["image/png", "image/jpg", "image/jpeg"].includes(value[0].type);
@@ -192,57 +180,58 @@ const { handleSubmit, handleReset } = useForm({
 // Handle File Selection
 const handleFileChange = (event) => {
 	const file = event.target.files || event;
-	thumbnail.value.value = file;
+	banner.value.value = file;
 };
 
-const thumbnail = useField("thumbnail");
+const banner = useField("banner");
 const status = useField("status");
 const statusItems = ref(["Active", "Inactive"]);
 
-const loadThumbnails = async ({ page, itemsPerPage, sortBy }) => {
+const getBanners = async ({ page, itemsPerPage, sortBy }) => {
     try {
-        loading.value = true;
-        const { data, total } = await useBaseFetch(`/admin/manuals/${route.params.id}/thumbnails`, {
-            method: 'GET',
+        fetching.value = true;
+        currentPage.value = page;
+        
+        const { data, total } = await useBaseFetch('/banners', {
+            method: 'get',
             params: {
                 page,
                 itemsPerPage,
-                sortBy,
+                sortBy
             }
-        });
+        })
 
-        serverItems.value = data;
-        totalItems.value = total;
+        banners.value = data;
+        totalItems.value = total
     } catch (error) {
         console.error(error);
     } finally {
-        loading.value = false;
+        fetching.value = false;
     }
-};
+}
 
 const resetValues = () => {
     itemDialog.value = false;
-    editDialog.value = false;
     handleReset()
 }
 
-const addThumbnailFile = handleSubmit(async (values) => {
+const addBannerFile = handleSubmit(async (values) => {
     try {
         modifying.value = true;
         const formData = new FormData();
         formData.append("status", values.status);
-        if (values.thumbnail && values.thumbnail.length) {
-            formData.append("thumbnail", values.thumbnail[0]);
+        if (values.banner && values.banner.length) {
+            formData.append("banner", values.banner[0]);
         }
 
-        const { message } = await useBaseFetch(`/admin/manuals/${route.params.id}/thumbnails`, {
+        const { message } = await useBaseFetch(`/banners`, {
             method: 'POST',
             body: formData
         });
 
         itemDialog.value = false
         successMessage.value = message;
-        loadThumbnails({page: 1, itemsPerPage: 10});
+        getBanners({page: 1, itemsPerPage: 10});
         successDialog.value = true;
         handleReset();
     } catch (error) {
@@ -252,35 +241,34 @@ const addThumbnailFile = handleSubmit(async (values) => {
     }
 });
 
-const deleteThumbnail = async () => {
+const deleteBanner = async (bannerId) => {
 	try {
-        modifying.value = true;
+        deleting.value = true;
 
-        const { message } = await useBaseFetch(`/admin/manuals/${route.params.id}/thumbnails/${selectedThumbnailId.value}`, {
+        const { message } = await useBaseFetch(`/banners/${bannerId}`, {
             method: 'DELETE'
         });
 
-        deleteConfirmation.value = false
         successMessage.value = message;
-        loadThumbnails({page: 1, itemsPerPage: 10});
+        getBanners({page: 1, itemsPerPage: 10});
         successDialog.value = true;
     } catch (error) {
         console.error(error);
     } finally {
-        modifying.value = false;
+        deleting.value = false;
     }
 };
 
-const previewThumbnail = async (id) => {
+const previewBanner = async (id) => {
     try {
         previewDialog.value = true;
         fetchingFile.value = true;
 
-        const { url } = await useBaseFetch(`/admin/manuals/file-signed-url/${id}?path=thumbnails`, {
+        const { bannerUrl } = await useBaseFetch(`/banners/${id}/preview`, {
             method: 'GET'
         });
 
-        thumbnailImage.value = url;
+        bannerImage.value = bannerUrl;
     } catch (error) {
         console.error(error);
     } finally {
@@ -290,9 +278,4 @@ const previewThumbnail = async (id) => {
 </script>
 
 <style lang="scss" scoped>
-.loading-position {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-}
 </style>

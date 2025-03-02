@@ -47,6 +47,12 @@
                         exact
                         to="/orders"
 					></v-list-item>
+                    <v-list-item
+						prepend-icon="mdi-view-carousel"
+						title="Banners"
+                        exact
+                        to="/banners"
+					></v-list-item>
 				</v-list>
 			</v-navigation-drawer>
 			<v-main>
