@@ -20,6 +20,10 @@
 import DocumentTabs from '~/components/manuals/document-tabs.vue';
 import ThumbnailTabs from '~/components/manuals/thumbnail-tabs.vue';
 
+definePageMeta({
+    title: 'Manuals'
+});
+
 const tab = ref('document');
 </script>
 

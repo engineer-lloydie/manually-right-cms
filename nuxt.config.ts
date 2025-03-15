@@ -10,12 +10,7 @@ export default defineNuxtConfig({
         }
     },
     modules: [
-        (_options, nuxt) => {
-            nuxt.hooks.hook('vite:extendConfig', (config) => {
-                // @ts-expect-error
-                config.plugins.push(vuetify({ autoImport: true }))
-            })
-        }
+        'nuxt-auth-sanctum'
     ],
     plugins: [
         '~/plugins/url-slug.mjs'
@@ -30,6 +25,7 @@ export default defineNuxtConfig({
         transpile: ['vuetify'],
     },
     vite: {
+        plugins: [vuetify({ autoImport: true })],
         ssr: {
             noExternal: ['vuetify']
         },
@@ -44,6 +40,22 @@ export default defineNuxtConfig({
                     silenceDeprecations: ['legacy-js-api']
                 }
             }
+        }
+    },
+    sanctum: {
+        baseUrl: process.env.AUTH_BASE_URL,
+        mode: 'token',
+        endpoints: {
+            login: '/api/login',
+            logout: '/api/logout'
+        },
+        redirect: {
+            onLogin: '/dashboard',
+            onLogout: '/',
+            onAuthOnly: '/'
+        },
+        globalMiddleware: {
+            enabled: true,
         }
     }
 })

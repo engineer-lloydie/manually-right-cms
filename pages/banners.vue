@@ -132,6 +132,10 @@
 import { useField, useForm } from "vee-validate";
 import * as yup from "yup";
 
+definePageMeta({
+    title: 'Banners'
+});
+
 const banners = ref([]);
 const fetching = ref(false);
 const modifying = ref(false);

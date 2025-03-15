@@ -152,6 +152,10 @@ import { useField, useForm } from "vee-validate";
 const tab = ref("main");
 import * as yup from "yup";
 
+definePageMeta({
+    title: 'Manuals'
+});
+
 const headers = ref([
     { title: "Category", key: "category", align: "start" },
     { title: "Title", key: "title", align: "end" },

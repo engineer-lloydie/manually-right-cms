@@ -20,6 +20,10 @@
 import MainCategoryTabs from '~/components/categories/main-category-tabs.vue';
 import SubCategoryTabs from '~/components/categories/subcategory-tabs.vue';
 
+definePageMeta({
+    title: 'Categories'
+});
+
 const tab = ref('main');
 </script>
 

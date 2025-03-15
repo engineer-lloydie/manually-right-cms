@@ -49,6 +49,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+    title: 'Orders'
+});
+
 const ordersLists = ref([]);
 const fetching = ref(false);
 
