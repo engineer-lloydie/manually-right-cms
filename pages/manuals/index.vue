@@ -4,18 +4,35 @@
 		<v-divider class="my-5"></v-divider>
 		<v-card>
 			<v-card-text>
-                <v-btn
-                    color="red-lighten-1"
-                    @click="itemDialog = true; loadSubCategories()"
-                >
-                    Add New
-                </v-btn>
+                <v-sheet class="d-flex justify-space-between align-center">
+                    <div>
+                        <v-btn
+                            color="red-lighten-1"
+                            @click="itemDialog = true; loadSubCategories()"
+                        >
+                            Add New
+                        </v-btn>
+                    </div>
+
+                    <div>
+                        <v-text-field
+                            v-model="searchQuery"
+                            density="comfortable"
+                            label="Search manuals"
+                            variant="outlined"
+                            width="400"
+                            append-inner-icon="mdi-magnify"
+                        ></v-text-field>
+                    </div>
+                </v-sheet>
                 <v-data-table-server
                     :items-per-page="itemsPerPage"
+                    :items-per-page-options="[10, 25, 50, 100]"
                     :headers="headers"
                     :items="serverItems"
                     :items-length="totalItems"
                     :loading="loading"
+                    :search="searchQuery"
                     item-value="name"
                     @update:options="loadManuals"
                 >
@@ -149,8 +166,8 @@
 
 <script setup>
 import { useField, useForm } from "vee-validate";
-const tab = ref("main");
 import * as yup from "yup";
+import { debounce } from "lodash";
 
 definePageMeta({
     title: 'Manuals'
@@ -158,12 +175,12 @@ definePageMeta({
 
 const headers = ref([
     { title: "Category", key: "category", align: "start" },
-    { title: "Title", key: "title", align: "end" },
-	{ title: "Description", key: "description", align: "end" },
-    { title: "Price", key: "price", align: "end" },
+    { title: "Title", key: "title", align: "end", sortable: false },
+	{ title: "Description", key: "description", sortable: false, align: "end" },
+    { title: "Price", key: "price", align: "end", sortable: false },
 	{ title: "URL Slug", key: "url_slug", align: "start", sortable: false },
 	{ title: "Status", key: "status", align: "start", sortable: false },
-	{ title: "Actions", key: "actions", align: "end" },
+	{ title: "Actions", key: "actions", align: "end", sortable: false },
 ]);
 
 const serverItems = ref([]);
@@ -176,6 +193,8 @@ const deleteConfirmation = ref(false);
 const successDialog = ref(false);
 const successMessage = ref(null);
 const selectedManualId = ref(null);
+
+const searchQuery = ref(null);
 
 const loadingCategories = ref(false);
 const categoryLists = ref([]);
@@ -201,7 +220,7 @@ const price = useField("price");
 const status = useField("status");
 const statusItems = ref(["Active", "Inactive"]);
 
-const loadManuals = async ({ page, itemsPerPage, sortBy }) => {
+const loadManuals = debounce(async ({ page, itemsPerPage, sortBy, search }) => {
     try {
         loading.value = true;
 
@@ -211,6 +230,7 @@ const loadManuals = async ({ page, itemsPerPage, sortBy }) => {
                 page,
                 itemsPerPage,
                 sortBy,
+                search
             }
         });
 
@@ -221,7 +241,7 @@ const loadManuals = async ({ page, itemsPerPage, sortBy }) => {
     } finally {
         loading.value = false;
     }
-};
+}, 500);
 
 const loadSubCategories = async () => {
     try {

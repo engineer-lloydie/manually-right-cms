@@ -2,19 +2,35 @@
 	<div>
         <v-tabs-window v-model="tab">
             <v-tabs-window-item value="main">
-                <v-btn
-                    color="red-lighten-1"
-                    @click="itemDialog = true"
-                >
-                    Add New
-                </v-btn>
+                <v-sheet class="d-flex justify-space-between align-center my-1">
+                    <div>
+                        <v-btn
+                            color="red-lighten-1"
+                            @click="itemDialog = true"
+                        >
+                            Add New
+                        </v-btn>
+                    </div>
+                    <div>
+                        <v-text-field
+                            v-model="searchQuery"
+                            density="comfortable"
+                            label="Search manuals"
+                            variant="outlined"
+                            width="400"
+                            append-inner-icon="mdi-magnify"
+                        ></v-text-field>
+                    </div>
+                </v-sheet>
                 <v-data-table-server
                     :items-per-page="itemsPerPage"
+                    :items-per-page-options="[10, 25, 50, 100]"
                     :headers="headers"
                     :items="serverItems"
                     :items-length="totalItems"
                     :loading="loading"
                     item-value="name"
+                    :search="searchQuery"
                     @update:options="loadCategories"
                 >
                     <template #item.actions="{ item }">
@@ -117,6 +133,7 @@
 <script setup>
 import { useField, useForm } from "vee-validate";
 import * as yup from "yup";
+import { debounce } from "lodash";
 
 const tab = ref("main");
 
@@ -139,6 +156,8 @@ const successDialog = ref(false);
 const successMessage = ref(null);
 const selectedCategoryId = ref(null);
 
+const searchQuery = ref(null);
+
 const schema = yup.object({
     name: yup.string().required("Name is required."),
 	status: yup.string().required("Status is required."),
@@ -156,7 +175,7 @@ const description = useField("description");
 const status = useField("status");
 const statusItems = ref(["Active", "Inactive"]);
 
-const loadCategories = async ({ page, itemsPerPage, sortBy }) => {
+const loadCategories = debounce(async ({ page, itemsPerPage, sortBy, search }) => {
     try {
         loading.value = true;
 
@@ -166,6 +185,7 @@ const loadCategories = async ({ page, itemsPerPage, sortBy }) => {
                 page,
                 itemsPerPage,
                 sortBy,
+                search
             }
         });
 
@@ -176,7 +196,7 @@ const loadCategories = async ({ page, itemsPerPage, sortBy }) => {
     } finally {
         loading.value = false;
     }
-};
+}, 500);
 
 const resetValues = () => {
     itemDialog.value = false;
