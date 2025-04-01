@@ -133,7 +133,7 @@
 <script setup>
 import { useField, useForm } from "vee-validate";
 import * as yup from "yup";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 
 const tab = ref("main");
 

@@ -143,7 +143,7 @@
 import { useField, useForm } from "vee-validate";
 const tab = ref("sub");
 import * as yup from "yup";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 
 const headers = ref([
     { title: "Main Categories", key: "main_category", align: "start" },
