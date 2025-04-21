@@ -99,11 +99,11 @@
 							label="Title"
 							variant="outlined"
 						></v-text-field>
-						<v-text-field
+						<v-textarea
 							v-model="description.value.value"
 							label="Description (Optional)"
 							variant="outlined"
-						></v-text-field>
+						></v-textarea>
                         <v-text-field
 							v-model="price.value.value"
                             :error-messages="price.errorMessage.value"
@@ -174,11 +174,11 @@ definePageMeta({
 });
 
 const headers = ref([
-    { title: "Category", key: "category", align: "start" },
-    { title: "Title", key: "title", align: "end", sortable: false },
-	{ title: "Description", key: "description", sortable: false, align: "end" },
+    { title: "Category", key: "category", align: "start", width: 200 },
+    { title: "Title", key: "title", align: "end", sortable: false, width: 300 },
+	{ title: "Description", key: "description", sortable: false, align: "end", width: 300 },
     { title: "Price", key: "price", align: "end", sortable: false },
-	{ title: "URL Slug", key: "url_slug", align: "start", sortable: false },
+	// { title: "URL Slug", key: "url_slug", align: "start", sortable: false },
 	{ title: "Status", key: "status", align: "start", sortable: false },
 	{ title: "Actions", key: "actions", align: "end", sortable: false },
 ]);

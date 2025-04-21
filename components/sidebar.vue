@@ -54,6 +54,13 @@
                             exact
                             to="/banners"
                         ></v-list-item>
+
+                        <v-list-item
+                            prepend-icon="mdi-card-search"
+                            title="Site Meta"
+                            exact
+                            to="/site-meta"
+                        ></v-list-item>
     
                         <v-divider></v-divider>
     
