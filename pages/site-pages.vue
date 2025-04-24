@@ -1,30 +1,30 @@
 <template>
-	<div>
-		<h3>Manuals</h3>
+    	<div>
+		<h3>Site Pages</h3>
 		<v-divider class="my-5"></v-divider>
 		<v-card>
 			<v-card-text>
-                <v-sheet class="d-flex justify-space-between align-center">
+                <v-sheet class="d-flex justify-space-between align-center my-1">
                     <div>
                         <v-btn
                             color="red-lighten-1"
-                            @click="itemDialog = true; loadSubCategories()"
+                            @click="itemDialog = true"
                         >
                             Add New
                         </v-btn>
                     </div>
-
                     <div>
                         <v-text-field
                             v-model="searchQuery"
                             density="comfortable"
-                            label="Search manuals"
+                            label="Search site pages"
                             variant="outlined"
                             width="400"
                             append-inner-icon="mdi-magnify"
                         ></v-text-field>
                     </div>
                 </v-sheet>
+
                 <v-data-table-server
                     :items-per-page="itemsPerPage"
                     :items-per-page-options="[10, 25, 50, 100]"
@@ -32,41 +32,25 @@
                     :items="serverItems"
                     :items-length="totalItems"
                     :loading="loading"
-                    :search="searchQuery"
                     item-value="name"
-                    @update:options="loadManuals"
+                    :search="searchQuery"
+                    @update:options="loadSitePages"
                 >
-                    <template #item.description="{ item }">
-                        <p>{{ item.description ?? 'N/A' }}</p>
-                    </template>
                     <template #item.actions="{ item }">
-                        <v-btn
+                        <v-icon
+                            class="me-2"
                             size="small"
-                            icon="mdi-pencil"
-                            @click="setItemToEdit(item); loadSubCategories()"
-                            density="comfortable"
-                            flat
-                        ></v-btn>
-                        <v-btn
-                            size="small"
-                            icon="mdi-delete" 
-                            @click="deleteConfirmation = true; selectedManualId = item.id"
-                            density="comfortable"
-                            flat
-                        ></v-btn>
-                        <v-tooltip text="Add Manual Documents and Thumbnails">
-                            <template v-slot:activator="{ props }">
-                                <v-btn 
-                                    v-bind="props"
-                                    size="small"
-                                    class="me-2"
-                                    icon="mdi-file-account" 
-                                    density="comfortable"
-                                    flat
-                                    :to="`/manuals/${item.id}`"
-                                ></v-btn>
-                            </template>
-                        </v-tooltip>
+                            @click="setItemToEdit(item)"
+                        >
+                            mdi-pencil
+                        </v-icon>
+                        <v-icon
+                            class="me-2"
+                            size="small" 
+                            @click="deleteConfirmation = true; selectedPageId = item.id"
+                        >
+                            mdi-delete
+                        </v-icon>
                         <v-icon 
                             size="small" 
                             @click="setupMetaTags(item)"
@@ -78,9 +62,9 @@
 			</v-card-text>
 		</v-card>
 
-        <!-- Dialogs -->
+		<!-- Dialogs -->
 		<v-dialog v-model="itemDialog" max-width="500">
-			<v-card :title="(editDialog ? 'Edit' : 'Add') + ' manual'">
+			<v-card :title="(editDialog ? 'Edit' : 'Add') + ' site pages'">
 				<template v-slot:actions>
 					<v-btn
 						class="ml-auto"
@@ -89,32 +73,17 @@
 					></v-btn>
 				</template>
 				<v-container>
-					<form @submit.prevent="handleManualForm">
-						<v-select
-							v-model="categoryId.value.value"
-							:error-messages="categoryId.errorMessage.value"
-							:items="categoryLists"
-                            item-value="id"
-                            item-title="name"
-							label="Category"
-							variant="outlined"
-                            :loading="loadingCategories"
-						></v-select>
-                        <v-text-field
-							v-model="title.value.value"
-							:error-messages="title.errorMessage.value"
-							label="Title"
+					<form @submit.prevent="handleFormSubmission">
+						<v-text-field
+							v-model="pageName.value.value"
+							:error-messages="pageName.errorMessage.value"
+							label="Page Name"
 							variant="outlined"
 						></v-text-field>
-						<v-textarea
-							v-model="description.value.value"
-							label="Description (Optional)"
-							variant="outlined"
-						></v-textarea>
-                        <v-text-field
-							v-model="price.value.value"
-                            :error-messages="price.errorMessage.value"
-							label="Price"
+						<v-text-field
+							v-model="urlSlug.value.value"
+                            :error-messages="urlSlug.errorMessage.value"
+							label="Url Slug"
 							variant="outlined"
 						></v-text-field>
 						<v-select
@@ -125,7 +94,7 @@
 							variant="outlined"
 						></v-select>
 
-						<v-btn class="me-4 mt-4" type="submit"> submit </v-btn>
+						<v-btn class="me-4 mt-4" :loading="modifying" type="submit"> submit </v-btn>
 
 						<v-btn class="mt-4" @click="handleReset"> clear </v-btn>
 					</form>
@@ -137,15 +106,16 @@
 			<v-card
 				max-width="400"
 				prepend-icon="mdi-delete-circle"
-				text="Are you sure you want to delete this category?"
-				title="Delete Category"
+				text="Are you sure you want to delete this site page?"
+				title="Delete site page"
 			>
 				<template v-slot:actions>
 					<v-btn
+                        :loading="modifying"
 						class="ms-auto"
 						text="Yes"
                         color="error"
-						@click="deleteManual()"
+						@click="deletePage"
 					></v-btn>
 				</template>
 			</v-card>
@@ -168,12 +138,12 @@
 				</template>
 			</v-card>
 		</v-dialog>
-        
+
         <v-dialog v-model="metaTagDialog" max-width="500">
             <v-card title="Setup Meta Tags">
                 <MetaTag
                     :item="selectedItem"
-                    :model="'manual'"
+                    :model="'site_page'"
                     @success="handleMetaTagSubmission"/>
     
                 <template v-slot:actions>
@@ -190,25 +160,24 @@
 
 <script setup>
 import { useField, useForm } from "vee-validate";
+import MetaTag from "~/components/meta-tag.vue";
 import * as yup from "yup";
 import debounce from "lodash/debounce";
 
 definePageMeta({
-    title: 'Manuals'
-});
+    title: 'Site Pages'
+})
 
 const headers = ref([
-    { title: "Category", key: "category", align: "start" },
-    { title: "Title", key: "title", align: "end", sortable: false },
-	{ title: "Description", key: "description", sortable: false, align: "end" },
-    { title: "Price", key: "price", align: "end", sortable: false },
-	// { title: "URL Slug", key: "url_slug", align: "start", sortable: false },
+	{ title: "Page Name", key: "name", align: "start" },
+	{ title: "URL Slug", key: "url_slug", align: "start", sortable: false },
 	{ title: "Status", key: "status", align: "start", sortable: false },
-	{ title: "Actions", key: "actions", align: "end", sortable: false, width: 150 },
+	{ title: "Actions", key: "actions", align: "end" },
 ]);
 
 const serverItems = ref([]);
 const loading = ref(true);
+const modifying = ref(false);
 const totalItems = ref(0);
 const itemsPerPage = ref(10);
 
@@ -222,18 +191,14 @@ const deleteConfirmation = ref(false);
 const successDialog = ref(false);
 const successMessage = ref(null);
 
-const selectedManualId = ref(null);
+const selectedPageId = ref(null);
 const selectedItem = ref(null);
 
 const searchQuery = ref(null);
 
-const loadingCategories = ref(false);
-const categoryLists = ref([]);
-
 const schema = yup.object({
-    categoryId: yup.number().required("Category is required."),
-    title: yup.string().required("Title is required."),
-    price: yup.string().required("Price is required."),
+    pageName: yup.string().required("Page name is required."),
+    urlSlug: yup.string().required("Url slug is required."),
 	status: yup.string().required("Status is required."),
 });
 
@@ -244,27 +209,26 @@ const { handleSubmit, handleReset } = useForm({
     },
 });
 
-const categoryId = useField("categoryId");
-const title = useField("title");
-const description = useField("description");
-const price = useField("price");
+// Site Page Form Fields
+const pageName = useField("pageName");
+const urlSlug = useField("urlSlug");
 const status = useField("status");
 const statusItems = ref(["Active", "Inactive"]);
 
 const config = useRuntimeConfig();
 
-const loadManuals = debounce(async ({ page, itemsPerPage, sortBy, search }) => {
+const loadSitePages = debounce(async ({ page, itemsPerPage, sortBy, search }) => {
     try {
         loading.value = true;
         currentPage.value = page;
 
-        const { data, total } = await $fetch(`${config.public.apiBaseUrl}/admin/manuals`, {
+        const { data, total } = await $fetch(`${config.public.apiBaseUrl}/admin/site-pages`, {
             method: 'GET',
             params: {
                 page,
                 itemsPerPage,
                 sortBy,
-                search
+                search,
             }
         });
 
@@ -277,22 +241,6 @@ const loadManuals = debounce(async ({ page, itemsPerPage, sortBy, search }) => {
     }
 }, 500);
 
-const loadSubCategories = async () => {
-    try {
-        loadingCategories.value = true;
-
-        const data = await useBaseFetch('/admin/sub-categories', {
-            method: 'GET'
-        });
-
-        categoryLists.value = data;
-    } catch (error) {
-        console.error(error);
-    } finally {
-        loadingCategories.value = false;
-    }
-};
-
 const resetValues = () => {
     itemDialog.value = false;
     editDialog.value = false;
@@ -300,33 +248,31 @@ const resetValues = () => {
     handleReset();
 }
 
-const handleManualForm = handleSubmit(async (values) => {
-    const { $slugify } = useNuxtApp();
-    
-    values.urlSlug = $slugify(values.title);
-    values.price = parseFloat(values.price);
-
+const handleFormSubmission = handleSubmit(async (values) => {
     if (!editDialog.value) {
-        addManual(values);
+        addSitePage(values);
     } else {
-        updateManual(values);
+        updateSitePage(values);
     }
 });
 
-const addManual = async (values) => {
+const addSitePage = async (values) => {
 	try {
-        const { message } = await useBaseFetch('/admin/manuals', {
+        modifying.value = true;
+        const { message } = await useBaseFetch('/admin/site-pages', {
             method: 'POST',
             body: values
         });
 
         itemDialog.value = false
         successMessage.value = message;
-        loadManuals({page: 1, itemsPerPage: 10});
+        loadSitePages({page: 1, itemsPerPage: 10});
         successDialog.value = true;
         handleReset();
     } catch (error) {
         console.error(error);
+    } finally {
+        modifying.value = false;
     }
 };
 
@@ -334,17 +280,16 @@ const setItemToEdit = (item) => {
     editDialog.value = true;
     itemDialog.value = true;
 
-    selectedManualId.value = item.id
-    categoryId.value.value = item.sub_category_id;
-    title.value.value = item.title;
-    description.value.value = item.description;
-    price.value.value = item.price;
+    selectedPageId.value = item.id
+    pageName.value.value = item.name;
+    urlSlug.value.value = item.url_slug;
     status.value.value = item.status;
 }
 
-const updateManual = async (values) => {
+const updateSitePage = async (values) => {
 	try {
-        const { message } = await useBaseFetch(`/admin/manuals/${selectedManualId.value}`, {
+        modifying.value = true;
+        const { message } = await useBaseFetch(`/admin/site-pages/${selectedPageId.value}`, {
             method: 'PUT',
             body: values
         });
@@ -352,26 +297,31 @@ const updateManual = async (values) => {
         itemDialog.value = false;
         editDialog.value = false;
         successMessage.value = message;
-        loadManuals({page: currentPage.value, itemsPerPage: 10});
+        loadSitePages({page: currentPage.value, itemsPerPage: 10});
         successDialog.value = true;
         handleReset();
     } catch (error) {
         console.error(error);
+    } finally {
+        modifying.value = false;
     }
 };
 
-const deleteManual = async () => {
+const deletePage = async () => {
 	try {
-        const { message } = await useBaseFetch(`/admin/manuals/${selectedManualId.value}`, {
+        modifying.value = true;
+        const { message } = await useBaseFetch(`/admin/site-pages/${selectedPageId.value}`, {
             method: 'DELETE'
         });
 
         deleteConfirmation.value = false
         successMessage.value = message;
-        loadManuals({page: currentPage.value, itemsPerPage: 10});
+        loadSitePages({page: currentPage.value, itemsPerPage: 10});
         successDialog.value = true;
     } catch (error) {
         console.error(error);
+    } finally {
+        modifying.value = false;
     }
 };
 
@@ -383,9 +333,10 @@ const setupMetaTags = (item) => {
 const handleMetaTagSubmission = (message) => {
     successMessage.value = message;
     successDialog.value = true;
-    loadManuals({page: currentPage.value, itemsPerPage: 10});
+    loadSitePages({page: currentPage.value, itemsPerPage: 10});
 }
 </script>
 
 <style lang="scss" scoped>
+
 </style>

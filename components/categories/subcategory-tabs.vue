@@ -15,7 +15,7 @@
                         <v-text-field
                             v-model="searchQuery"
                             density="comfortable"
-                            label="Search manuals"
+                            label="Search sub categories"
                             variant="outlined"
                             width="400"
                             append-inner-icon="mdi-magnify"
@@ -41,11 +41,18 @@
                         >
                             mdi-pencil
                         </v-icon>
-                        <v-icon 
+                        <v-icon
+                            class="me-2"
                             size="small" 
                             @click="deleteConfirmation = true; selectedCategoryId = item.id"
                         >
                             mdi-delete
+                        </v-icon>
+                        <v-icon 
+                            size="small" 
+                            @click="setupMetaTags(item)"
+                        >
+                            mdi-card-search
                         </v-icon>
                     </template>
                 </v-data-table-server>
@@ -136,6 +143,23 @@
 				</template>
 			</v-card>
 		</v-dialog>
+
+        <v-dialog v-model="metaTagDialog" max-width="500">
+            <v-card title="Setup Meta Tags">
+                <MetaTag
+                    :item="selectedItem"
+                    :model="'category'"
+                    @success="handleMetaTagSubmission"/>
+    
+                <template v-slot:actions>
+                    <v-btn
+                        class="ml-auto"
+                        text="Close"
+                        @click="metaTagDialog = false; successMessage = null"
+                    ></v-btn>
+                </template>
+            </v-card>
+		</v-dialog>
 	</div>
 </template>
 
@@ -162,7 +186,12 @@ const editDialog = ref(false);
 const deleteConfirmation = ref(false);
 const successDialog = ref(false);
 const successMessage = ref(null);
+
 const selectedCategoryId = ref(null);
+const selectedItem = ref(null);
+
+const currentPage = ref(1);
+const metaTagDialog = ref(false);
 
 const loadingMainCategories = ref(false);
 const mainCategoryLists = ref([]);
@@ -188,11 +217,14 @@ const description = useField("description");
 const status = useField("status");
 const statusItems = ref(["Active", "Inactive"]);
 
+const config = useRuntimeConfig();
+
 const loadCategories = debounce(async ({ page, itemsPerPage, sortBy, search }) => {
     try {
         loading.value = true;
+        currentPage.value = page;
 
-        const { data, total } = await useBaseFetch('/admin/sub-categories', {
+        const { data, total } = await $fetch(`${config.public.apiBaseUrl}/admin/sub-categories`, {
             method: 'GET',
             params: {
                 page,
@@ -230,6 +262,7 @@ const loadMainCategories = async () => {
 const resetValues = () => {
     itemDialog.value = false;
     editDialog.value = false;
+    metaTagDialog.value = false;
     handleReset()
 }
 
@@ -254,7 +287,7 @@ const addCategory = async (values) => {
 
         itemDialog.value = false
         successMessage.value = message;
-        loadCategories({page: 1, itemsPerPage: 10});
+        loadCategories({page: currentPage.value, itemsPerPage: 10});
         successDialog.value = true;
         handleReset();
     } catch (error) {
@@ -283,7 +316,7 @@ const updateCategory = async (values) => {
         itemDialog.value = false;
         editDialog.value = false;
         successMessage.value = message;
-        loadCategories({page: 1, itemsPerPage: 10});
+        loadCategories({page: currentPage.value, itemsPerPage: 10});
         successDialog.value = true;
         handleReset();
     } catch (error) {
@@ -299,12 +332,23 @@ const deleteCategory = async () => {
 
         deleteConfirmation.value = false
         successMessage.value = message;
-        loadCategories({page: 1, itemsPerPage: 10});
+        loadCategories({page: currentPage.value, itemsPerPage: 10});
         successDialog.value = true;
     } catch (error) {
         console.error(error);
     }
 };
+
+const setupMetaTags = (item) => {
+    metaTagDialog.value = true;
+    selectedItem.value = item;
+}
+
+const handleMetaTagSubmission = (message) => {
+    successMessage.value = message;
+    successDialog.value = true;
+    loadCategories({page: currentPage.value, itemsPerPage: 10});
+}
 </script>
 
 <style lang="scss" scoped>

@@ -15,7 +15,7 @@
                         <v-text-field
                             v-model="searchQuery"
                             density="comfortable"
-                            label="Search manuals"
+                            label="Search main categories"
                             variant="outlined"
                             width="400"
                             append-inner-icon="mdi-magnify"

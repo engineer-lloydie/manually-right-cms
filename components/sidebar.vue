@@ -56,6 +56,13 @@
                         ></v-list-item>
 
                         <v-list-item
+                            prepend-icon="mdi-book-open-page-variant"
+                            title="Site Pages"
+                            exact
+                            to="/site-pages"
+                        ></v-list-item>
+
+                        <v-list-item
                             prepend-icon="mdi-card-search"
                             title="Site Meta"
                             exact
