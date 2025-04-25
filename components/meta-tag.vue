@@ -8,12 +8,12 @@
                     label="Title"
                     variant="outlined"
                 ></v-text-field>
-                <v-text-field
+                <v-textarea
                     v-model="metaDescription.value.value"
                     :error-messages="metaDescription.errorMessage.value"
                     label="Description"
                     variant="outlined"
-                ></v-text-field>
+                ></v-textarea>
 
                 <v-btn class="me-4 mt-4" :loading="modifying" type="submit"> submit </v-btn>
 

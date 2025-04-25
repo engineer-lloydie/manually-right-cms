@@ -70,11 +70,11 @@
 							label="Name"
 							variant="outlined"
 						></v-text-field>
-						<v-text-field
+						<v-textarea
 							v-model="description.value.value"
 							label="Description (Optional)"
 							variant="outlined"
-						></v-text-field>
+						></v-textarea>
 						<v-select
 							v-model="status.value.value"
 							:error-messages="status.errorMessage.value"
