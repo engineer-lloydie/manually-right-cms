@@ -34,7 +34,6 @@
                     :loading="loading"
                     :search="searchQuery"
                     item-value="name"
-                    :row-props="getItemClass"
                     @update:options="loadManuals"
                 >
                     <template #item.description="{ item }">
@@ -60,6 +59,7 @@
                                 <v-btn 
                                     v-bind="props"
                                     size="small"
+                                    class="me-2"
                                     icon="mdi-file-account" 
                                     density="comfortable"
                                     flat
@@ -67,13 +67,12 @@
                                 ></v-btn>
                             </template>
                         </v-tooltip>
-                        <v-btn
-                            size="small"
-                            icon="mdi-card-search" 
+                        <v-icon 
+                            size="small" 
                             @click="setupMetaTags(item)"
-                            density="comfortable"
-                            flat
-                        ></v-btn>
+                        >
+                            mdi-card-search
+                        </v-icon>
                     </template>
                 </v-data-table-server>
 			</v-card-text>
@@ -205,7 +204,7 @@ const headers = ref([
     { title: "Price", key: "price", align: "end", sortable: false },
 	// { title: "URL Slug", key: "url_slug", align: "start", sortable: false },
 	{ title: "Status", key: "status", align: "start", sortable: false },
-	{ title: "Actions", key: "actions", align: "end", sortable: false, width: 200 },
+	{ title: "Actions", key: "actions", align: "end", sortable: false, width: 150 },
 ]);
 
 const serverItems = ref([]);
@@ -377,7 +376,6 @@ const deleteManual = async () => {
 };
 
 const setupMetaTags = (item) => {
-    selectedManualId.value = item.id;
     metaTagDialog.value = true;
     selectedItem.value = item;
 }
@@ -386,14 +384,6 @@ const handleMetaTagSubmission = (message) => {
     successMessage.value = message;
     successDialog.value = true;
     loadManuals({page: currentPage.value, itemsPerPage: 10});
-}
-
-const getItemClass = (item) => {
-    if (item.item.id === selectedManualId.value) {
-        return { class: 'bg-red-lighten-1' };
-    }
-
-    return {};
 }
 </script>
 

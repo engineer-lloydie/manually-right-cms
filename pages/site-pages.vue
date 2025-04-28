@@ -33,7 +33,6 @@
                     :items-length="totalItems"
                     :loading="loading"
                     item-value="name"
-                    :row-props="getItemClass"
                     :search="searchQuery"
                     @update:options="loadSitePages"
                 >
@@ -327,7 +326,6 @@ const deletePage = async () => {
 };
 
 const setupMetaTags = (item) => {
-    selectedPageId.value = item.id;
     metaTagDialog.value = true;
     selectedItem.value = item;
 }
@@ -336,14 +334,6 @@ const handleMetaTagSubmission = (message) => {
     successMessage.value = message;
     successDialog.value = true;
     loadSitePages({page: currentPage.value, itemsPerPage: 10});
-}
-
-const getItemClass = (item) => {
-    if (item.item.id === selectedPageId.value) {
-        return { class: 'bg-red-lighten-1' };
-    }
-
-    return {};
 }
 </script>
 

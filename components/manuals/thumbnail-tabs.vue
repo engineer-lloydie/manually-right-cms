@@ -15,7 +15,6 @@
                     :items-length="totalItems"
                     :loading="loading"
                     item-value="name"
-                    :row-props="getItemClass"
                     @update:options="loadThumbnails"
                 >
                     <template #item.actions="{ item }">
@@ -287,14 +286,6 @@ const previewThumbnail = async (id) => {
     } finally {
         fetchingFile.value = false;
     }
-}
-
-const getItemClass = (item) => {
-    if (item.item.id === selectedThumbnailId.value) {
-        return { class: 'bg-red-lighten-1' };
-    }
-
-    return {};
 }
 </script>
 

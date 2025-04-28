@@ -30,7 +30,6 @@
                     :items-length="totalItems"
                     :loading="loading"
                     item-value="name"
-                    :row-props="getItemClass"
                     :search="searchQuery"
                     @update:options="loadCategories"
                 >
@@ -285,14 +284,6 @@ const deleteCategory = async () => {
         modifying.value = false;
     }
 };
-
-const getItemClass = (item) => {
-    if (item.item.id === selectedCategoryId.value) {
-        return { class: 'bg-red-lighten-1' };
-    }
-
-    return {};
-}
 </script>
 
 <style lang="scss" scoped>
