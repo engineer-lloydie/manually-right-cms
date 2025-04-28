@@ -15,6 +15,7 @@
                     :items-length="totalItems"
                     :loading="loading"
                     item-value="name"
+                    :row-props="getItemClass"
                     @update:options="loadDocumentFiles"
                 >
                     <template #item.title="{ item }">
@@ -307,6 +308,14 @@ const previewDocument = async (id) => {
     } finally {
         fetchingFile.value = false;
     }
+}
+
+const getItemClass = (item) => {
+    if (item.item.id === selectedDocumentId.value) {
+        return { class: 'bg-red-lighten-1' };
+    }
+
+    return {};
 }
 </script>
 
